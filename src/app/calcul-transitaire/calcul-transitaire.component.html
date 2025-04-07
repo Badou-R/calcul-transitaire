@@ -1,0 +1,151 @@
+<div class="p-6 max-w-5xl mx-auto space-y-6">
+  <h1 class="text-2xl font-bold mb-6">🧮 Logiciel de Calcul - Transitaire</h1>
+
+  <!-- Formulaire principal -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="fobTotal" class="text-sm font-medium text-gray-700">FOB TOTAL</label>
+        <span class="text-sm text-blue-500" *ngIf="fobTotal">
+        {{ fobTotal | deviseFormatter }} FCFA
+      </span>
+      </div>
+      <input id="fobTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="fobTotal">
+    </div>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="fretTotal" class="text-sm font-medium text-gray-700">FRET TOTAL</label>
+        <span class="text-sm text-blue-500" *ngIf="fretTotal">
+        {{ fretTotal | deviseFormatter }} FCFA
+      </span>
+      </div>
+      <input id="fretTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="fretTotal">
+    </div>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="assTotal" class="text-sm font-medium text-gray-700">ASS TOTAL</label>
+        <span class="text-sm text-blue-500" *ngIf="assTotal">
+        {{ assTotal | deviseFormatter }} FCFA
+      </span>
+      </div>
+      <input id="assTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="assTotal">
+    </div>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="autresFraisTotal" class="text-sm font-medium text-gray-700">AUTRES FRAIS</label>
+        <span class="text-sm text-blue-500" *ngIf="autresFraisTotal">
+        {{ autresFraisTotal | deviseFormatter }} FCFA
+      </span>
+      </div>
+      <input id="autresFraisTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="autresFraisTotal">
+    </div>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="poidsTotal" class="text-sm font-medium text-gray-700">POIDS TOTAL</label>
+        <span class="text-sm text-blue-500" *ngIf="poidsTotal">
+        {{ poidsTotal | deviseFormatter }} KG
+      </span>
+      </div>
+      <input id="poidsTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="poidsTotal">
+    </div>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="colisTotal" class="text-sm font-medium text-gray-700">NOMBRE DE COLIS</label>
+        <span class="text-sm text-blue-500" *ngIf="colisTotal">
+        {{ colisTotal | deviseFormatter }} Colis
+      </span>
+      </div>
+      <input id="colisTotal" class="border p-2 rounded w-full" type="number" [(ngModel)]="colisTotal">
+    </div>
+  </div>
+
+
+  <!-- Génération d'articles -->
+  <div class="flex gap-4 items-end mt-6">
+    <div>
+      <label for="nombreArticles" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'articles</label>
+      <input id="nombreArticles" class="border p-2 rounded w-40" type="number" [(ngModel)]="nombreArticles">
+    </div>
+    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200" (click)="genererArticles()">Générer</button>
+  </div>
+
+  <!-- Section des articles -->
+  <div *ngIf="articles.length > 0" class="space-y-6 mt-8">
+    <h2 class="text-xl font-semibold border-b pb-2">Articles</h2>
+
+    <div *ngFor="let article of articles; let i = index" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg mb-3">
+      <div>
+        <div class="flex flex-wrap items-center justify-between mb-1">
+          <label [for]="'position' + i" class="text-sm font-medium text-gray-700">
+            Position tarifaire {{ i + 1 }}
+          </label>
+        </div>
+        <input [id]="'position' + i" class="border p-2 rounded w-full" [(ngModel)]="article.position">
+      </div>
+
+      <div>
+        <div class="flex flex-wrap items-center justify-between mb-1">
+          <label [for]="'fob' + i" class="text-sm font-medium text-gray-700">
+            FOB {{ i + 1 }}
+          </label>
+          <span class="text-sm text-blue-500" *ngIf="article.fob">
+          {{ article.fob | deviseFormatter }} FCFA
+        </span>
+        </div>
+        <input [id]="'fob' + i" class="border p-2 rounded w-full" type="number" [(ngModel)]="article.fob">
+      </div>
+    </div>
+
+    <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition duration-200" (click)="calculer()">
+      Calculer
+    </button>
+  </div>
+
+  <!-- Tableau -->
+    <div class="overflow-x-auto bg-white rounded-lg shadow mt-6">
+
+      <!-- Bouton Exporter -->
+      <div class="flex justify-end mb-4">
+        <button *ngIf="articles.length > 0"
+          class="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition duration-200"
+          (click)="exporterPDF()"
+        >
+          <fa-icon [icon]="faPrint" class="w-5 h-5" />
+          Exporter en PDF
+        </button>
+      </div>
+
+      <table class="w-full text-sm">
+        <thead>
+        <tr class="bg-gray-100 text-gray-700">
+          <th class="py-3 px-4 text-left font-semibold border-b">#</th>
+          <th class="py-3 px-4 text-left font-semibold border-b">Position</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">FOB</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">FRET</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">ASS</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">Autres Frais</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">Poids</th>
+          <th class="py-3 px-4 text-right font-semibold border-b">Colis</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let a of articles; let i = index" class="hover:bg-gray-50">
+          <td class="py-2 px-4 border-b">{{ i + 1 }}</td>
+          <td class="py-2 px-4 border-b">{{ a.position }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.fob | deviseFormatter }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.fret | deviseFormatter }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.ass | deviseFormatter }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.autresFrais | deviseFormatter }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.poids | deviseFormatter }}</td>
+          <td class="py-2 px-4 text-right border-b">{{ a.colis | deviseFormatter }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
