@@ -179,7 +179,9 @@ export class CalculTransitaireComponent {
       }
 
       // Télécharger le PDF
-      pdf.save('calcul-transitaire.pdf');
+      const suffix = Date.now();
+      const baseName = 'calcul-transitaire'
+      pdf.save(`${baseName}_${suffix}.pdf`);
 
       // Supprimer l'élément temporaire
       document.body.removeChild(pdfContent);
@@ -189,7 +191,7 @@ export class CalculTransitaireComponent {
   // Fonction helper pour formater les nombres
   formatNumber(value: number | undefined): string {
     if (value === undefined || value === null) return '0';
-    return new Intl.NumberFormat('fr-FR').format(Number(value.toFixed(2)));
+    return new Intl.NumberFormat('fr-FR').format(Number(value.toFixed(0)));
   }
 
 }
