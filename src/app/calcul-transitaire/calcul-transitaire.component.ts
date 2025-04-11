@@ -27,7 +27,6 @@ export class CalculTransitaireComponent {
 
   articles: Article[] = [];
 
-  protected readonly faFilePdf = faFilePdf;
   protected readonly faPrint = faPrint;
 
   genererArticles() {
@@ -76,112 +75,135 @@ export class CalculTransitaireComponent {
     // Créer un élément container temporaire pour le contenu du PDF
     const pdfContent = document.createElement('div');
     pdfContent.style.padding = '20px';
+    pdfContent.style.width = '100%';
+    pdfContent.style.maxWidth = '800px'; // Limiter la largeur pour améliorer la lisibilité
+    pdfContent.style.margin = '0 auto';
 
-    // Ajouter un titre
     const title = document.createElement('h1');
     title.textContent = 'Calcul - Transitaire';
-    title.style.fontSize = '24px';
-    title.style.marginBottom = '20px';
+    title.style.fontSize = '32px';
+    title.style.marginBottom = '25px';
     title.style.textAlign = 'center';
+    title.style.fontWeight = 'bold';
     pdfContent.appendChild(title);
 
     // Ajouter la section des totaux
     const totalsSection = document.createElement('div');
     totalsSection.innerHTML = `
-      <h2 style="font-size: 18px; margin-bottom: 10px;">Totaux</h2>
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">FOB TOTAL</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.fobTotal)} FCFA</td>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">FRET TOTAL</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.fretTotal)} FCFA</td>
-        </tr>
-        <tr>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">ASS TOTAL</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.assTotal)} FCFA</td>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">AUTRES FRAIS</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.autresFraisTotal)} FCFA</td>
-        </tr>
-        <tr>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">POIDS TOTAL</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.poidsTotal)} KG</td>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">NOMBRE DE COLIS</th>
-          <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(this.colisTotal)} Colis</td>
-        </tr>
-      </table>
-    `;
+    <h2 style="font-size: 26px; margin-bottom: 15px; font-weight: bold;">Totaux</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+      <tr>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">FOB TOTAL</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.fobTotal)} FCFA</td>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">FRET TOTAL</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.fretTotal)} FCFA</td>
+      </tr>
+      <tr>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">ASS TOTAL</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.assTotal)} FCFA</td>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">AUTRES FRAIS</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.autresFraisTotal)} FCFA</td>
+      </tr>
+      <tr>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">POIDS TOTAL</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.poidsTotal)} KG</td>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">NOMBRE DE COLIS</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.colisTotal)} Colis</td>
+      </tr>
+    </table>
+  `;
     pdfContent.appendChild(totalsSection);
 
-    // Ajouter le tableau des articles si disponible
+    // Ajouter le tableau des articles
     if (this.articles.length > 0) {
       const articlesSection = document.createElement('div');
       articlesSection.innerHTML = `
-        <h2 style="font-size: 18px; margin-bottom: 10px;">Articles</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background-color: #f2f2f2;">
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">#</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Position</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">FOB</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">FRET</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">ASS</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Autres Frais</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Poids</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Colis</th>
+      <h2 style="font-size: 26px; margin-bottom: 15px; font-weight: bold;">Articles</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 15px; font-weight: bold;">#</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 15px; font-weight: bold;">Position</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">FOB</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">FRET</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">ASS</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">Autres</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">Poids</th>
+            <th style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 15px; font-weight: bold;">Colis</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${this.articles.map((article, index) => `
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 10px; font-size: 14px;">${index + 1}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; font-size: 14px;">${article.position}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.fob)}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.fret)}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.ass)}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.autresFrais)}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.poids)}</td>
+              <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-size: 14px;">${this.formatNumber(article.colis)}</td>
             </tr>
-          </thead>
-          <tbody>
-            ${this.articles.map((article, index) => `
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${article.position}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.fob)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.fret)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.ass)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.autresFrais)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.poids)}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${this.formatNumber(article.colis)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
+          `).join('')}
+        </tbody>
+      </table>
+    `;
       pdfContent.appendChild(articlesSection);
     }
+
+    // Ajouter la date et l'heure d'exportation
+    const dateSection = document.createElement('div');
+    dateSection.innerHTML = `
+    <p style="margin-top: 20px; font-size: 14px; text-align: right; font-style: italic;">
+      Exporté le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+    </p>
+  `;
+    pdfContent.appendChild(dateSection);
 
     // Ajouter le contenu temporaire au document
     document.body.appendChild(pdfContent);
 
-    // Utiliser html2canvas pour convertir le contenu en image
+    // Utiliser html2canvas
     html2canvas(pdfContent, {
-      scale: 2,
+      scale: 3,
       logging: false,
-      useCORS: true
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
     }).then(canvas => {
-      // Créer un nouveau document PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210; // Largeur A4 en mm (moins les marges)
-      const pageHeight = 297; // Hauteur A4 en mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
+      // Créer un nouveau document PDF avec marges réduites
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculer les dimensions pour garder le ratio
+      const imgWidth = pageWidth - 10; // 5mm de marge de chaque côté
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = 5; // Début avec une marge de 5mm en haut
 
       // Ajouter l'image de la première page
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 5, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 10); // 5mm de marge haut et bas
 
       // Ajouter des pages supplémentaires si nécessaire
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 5; // +5 pour la marge supérieure
         pdf.addPage();
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 5, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 10);
       }
 
-      // Télécharger le PDF
-      const suffix = Date.now();
-      const baseName = 'calcul-transitaire'
-      pdf.save(`${baseName}_${suffix}.pdf`);
+      // Télécharger le PDF avec un nom basé sur la date
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      pdf.save(`calcul-transitaire-${dateStr}.pdf`);
 
       // Supprimer l'élément temporaire
       document.body.removeChild(pdfContent);
