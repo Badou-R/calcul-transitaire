@@ -82,6 +82,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "index.html",
+                "input": "dist/calcul-transitaire/browser",
+                "output": "/"
               }
             ],
             "styles": [
