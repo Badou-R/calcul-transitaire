@@ -4,7 +4,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {DeviseFormatterPipe} from '../pipe/devise-formatter.pipe';
 import Swal from 'sweetalert2';
-import {faFilePdf, faPrint} from '@fortawesome/free-solid-svg-icons';
+import {faPrint} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -36,6 +36,26 @@ export class CalculTransitaireComponent {
     }));
   }
 
+  get valeurCaf(): number {
+    return (this.fobTotal || 0) + (this.fretTotal || 0) + (this.assTotal || 0) + (this.autresFraisTotal || 0);
+  }
+
+  // Calcul du FOB saisi en temps réel
+  get fobSaisi(): number {
+    return this.articles.reduce((sum, a) => sum + Number(a.fob || 0), 0);
+  }
+
+  // FOB restant à saisir
+  get fobRestant(): number {
+    return this.fobTotal - this.fobSaisi;
+  }
+
+  // Pourcentage du FOB saisi
+  get pourcentageFobSaisi(): number {
+    if (this.fobTotal === 0) return 0;
+    return (this.fobSaisi / this.fobTotal) * 100;
+  }
+
   calculer() {
     if (this.fobTotal === 0) return;
 
@@ -44,7 +64,16 @@ export class CalculTransitaireComponent {
       Swal.fire({
         icon: 'error',
         title: 'FOB dépassé',
-        text: `La somme des FOB saisis (${totalFOBArticles}) dépasse le FOB TOTAL (${this.fobTotal}) !`,
+        text: `La somme des FOB saisis (${this.formatNumber(totalFOBArticles)}) dépasse le FOB TOTAL (${this.formatNumber(this.fobTotal)}) !`,
+        confirmButtonColor: '#2563eb',
+      });
+      return;
+
+    }if (totalFOBArticles < this.fobTotal) {
+      Swal.fire({
+        icon: 'error',
+        title: 'FOB pas atteint',
+        text: `La somme des FOB saisis (${totalFOBArticles}) n'atteint pas le FOB TOTAL (${this.fobTotal}) !`,
         confirmButtonColor: '#2563eb',
       });
       return;
@@ -69,6 +98,7 @@ export class CalculTransitaireComponent {
       confirmButtonColor: '#16a34a',
     });
   }
+
 
   // Fonction pour exporter en PDF
   exporterPDF() {
@@ -109,6 +139,12 @@ export class CalculTransitaireComponent {
         <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.poidsTotal)} KG</td>
         <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">NOMBRE DE COLIS</th>
         <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.colisTotal)} Colis</td>
+      </tr>
+      <tr>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">VALEUR CAF</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.valeurCaf)} FCFA</td>
+        <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 16px; background-color: #f8f8f8;">NOMBRE D'ARTICLES</th>
+        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 16px;">${this.formatNumber(this.nombreArticles)}</td>
       </tr>
     </table>
   `;
@@ -201,9 +237,11 @@ export class CalculTransitaireComponent {
         heightLeft -= (pageHeight - 10);
       }
 
-      // Télécharger le PDF avec un nom basé sur la date
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      pdf.save(`calcul-transitaire-${dateStr}.pdf`);
+      // Télécharger le PDF avec un nom basé sur la date et l'heure
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ''); // AAAAMMJJ
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+      pdf.save(`calcul-transitaire-${dateStr}-${timeStr}.pdf`);
 
       // Supprimer l'élément temporaire
       document.body.removeChild(pdfContent);

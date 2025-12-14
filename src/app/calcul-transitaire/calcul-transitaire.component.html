@@ -66,13 +66,105 @@
 
 
   <!-- Génération d'articles -->
-  <div class="flex gap-4 items-end mt-6">
-    <div>
-      <label for="nombreArticles" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'articles</label>
-      <input id="nombreArticles" class="border p-2 rounded w-40" type="number" [(ngModel)]="nombreArticles">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-6">
+
+    <div class="flex gap-4 items-end">
+      <div class="w-full">
+        <label for="nombreArticles" class="block text-sm font-medium text-gray-700 mb-1">Nombre d'articles</label>
+        <input id="nombreArticles" class="border p-2 rounded w-full" type="number" [(ngModel)]="nombreArticles">
+      </div>
+      <button
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+        (click)="genererArticles()">
+        Générer
+      </button>
     </div>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200" (click)="genererArticles()">Générer</button>
+
+    <div>
+      <div class="flex flex-wrap items-center justify-between mb-1">
+        <label for="valeurCaf" class="text-sm font-medium text-gray-700">Valeur CAF</label>
+        <span class="text-sm text-blue-500" *ngIf="valeurCaf">
+        {{ valeurCaf | deviseFormatter }} FCFA
+      </span>
+      </div>
+      <input
+        [readOnly]="true"
+        id="valeurCaf"
+        class="border p-2 rounded w-full"
+        type="number"
+        [ngModel]="valeurCaf">
+    </div>
   </div>
+
+  <!-- Indicateur FOB Saisi (affiché uniquement si des articles existent) -->
+  <div *ngIf="articles.length > 0 && fobTotal > 0" class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-gray-800">Suivi de la saisie FOB</h3>
+      <span class="text-sm font-medium px-3 py-1 rounded-full"
+            [ngClass]="{
+              'bg-green-100 text-green-700': fobSaisi === fobTotal,
+              'bg-yellow-100 text-yellow-700': fobSaisi < fobTotal,
+              'bg-red-100 text-red-700': fobSaisi > fobTotal
+            }">
+        {{ pourcentageFobSaisi | number:'1.0-1' }}%
+      </span>
+    </div>
+
+    <!-- Barre de progression -->
+    <div class="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
+      <div class="h-full transition-all duration-300 rounded-full"
+           [ngClass]="{
+             'bg-green-500': fobSaisi === fobTotal,
+             'bg-yellow-500': fobSaisi < fobTotal,
+             'bg-red-500': fobSaisi > fobTotal
+           }"
+           [style.width.%]="pourcentageFobSaisi > 100 ? 100 : pourcentageFobSaisi">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-white p-3 rounded-lg shadow-sm">
+        <p class="text-xs text-gray-600 mb-1">FOB Total</p>
+        <p class="text-lg font-bold text-blue-600">{{ fobTotal | deviseFormatter }}</p>
+      </div>
+      <div class="bg-white p-3 rounded-lg shadow-sm">
+        <p class="text-xs text-gray-600 mb-1">FOB Saisi</p>
+        <p class="text-lg font-bold"
+           [ngClass]="{
+             'text-green-600': fobSaisi === fobTotal,
+             'text-yellow-600': fobSaisi < fobTotal,
+             'text-red-600': fobSaisi > fobTotal
+           }">
+          {{ fobSaisi | deviseFormatter }}
+        </p>
+      </div>
+      <div class="bg-white p-3 rounded-lg shadow-sm">
+        <p class="text-xs text-gray-600 mb-1">Restant</p>
+        <p class="text-lg font-bold"
+           [ngClass]="{
+             'text-green-600': fobRestant === 0,
+             'text-gray-600': fobRestant > 0,
+             'text-red-600': fobRestant < 0
+           }">
+          {{ fobRestant | deviseFormatter }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Message d'état -->
+    <div class="mt-3 text-center text-sm font-medium">
+      <span *ngIf="fobSaisi === fobTotal" class="text-green-600">
+        ✓ FOB complet ! Vous pouvez calculer.
+      </span>
+      <span *ngIf="fobSaisi < fobTotal" class="text-yellow-600">
+        ⚠ Il reste {{ fobRestant | deviseFormatter }} FCFA à saisir
+      </span>
+      <span *ngIf="fobSaisi > fobTotal" class="text-red-600">
+        ✗ Dépassement de {{ (fobSaisi - fobTotal) | deviseFormatter }} FCFA
+      </span>
+    </div>
+  </div>
+
 
   <!-- Section des articles -->
   <div *ngIf="articles.length > 0" class="space-y-6 mt-8">
@@ -107,45 +199,45 @@
   </div>
 
   <!-- Tableau -->
-    <div class="overflow-x-auto bg-white rounded-lg shadow mt-6">
+  <div class="overflow-x-auto bg-white rounded-lg shadow mt-6">
 
-      <!-- Bouton Exporter -->
-      <div class="flex justify-end mb-4">
-        <button *ngIf="articles.length > 0"
-          class="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition duration-200"
-          (click)="exporterPDF()"
-        >
-          <fa-icon [icon]="faPrint" class="w-5 h-5" />
-          Exporter en PDF
-        </button>
-      </div>
-
-      <table class="w-full text-sm">
-        <thead>
-        <tr class="bg-gray-100 text-gray-700">
-          <th class="py-3 px-4 text-left font-semibold border-b">#</th>
-          <th class="py-3 px-4 text-left font-semibold border-b">Position</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">FOB</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">FRET</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">ASS</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">Autres Frais</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">Poids</th>
-          <th class="py-3 px-4 text-right font-semibold border-b">Colis</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let a of articles; let i = index" class="hover:bg-gray-50">
-          <td class="py-2 px-4 border-b">{{ i + 1 }}</td>
-          <td class="py-2 px-4 border-b">{{ a.position }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.fob | deviseFormatter }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.fret | deviseFormatter }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.ass | deviseFormatter }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.autresFrais | deviseFormatter }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.poids | deviseFormatter }}</td>
-          <td class="py-2 px-4 text-right border-b">{{ a.colis | deviseFormatter }}</td>
-        </tr>
-        </tbody>
-      </table>
+    <!-- Bouton Exporter -->
+    <div class="flex justify-end mb-4">
+      <button *ngIf="articles.length > 0"
+              class="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition duration-200"
+              (click)="exporterPDF()"
+      >
+        <fa-icon [icon]="faPrint" class="w-5 h-5" />
+        Exporter en PDF
+      </button>
     </div>
 
+    <table class="w-full text-sm">
+      <thead>
+      <tr class="bg-gray-100 text-gray-700">
+        <th class="py-3 px-4 text-left font-semibold border-b">#</th>
+        <th class="py-3 px-4 text-left font-semibold border-b">Position</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">FOB</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">FRET</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">ASS</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">Autres Frais</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">Poids</th>
+        <th class="py-3 px-4 text-right font-semibold border-b">Colis</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let a of articles; let i = index" class="hover:bg-gray-50">
+        <td class="py-2 px-4 border-b">{{ i + 1 }}</td>
+        <td class="py-2 px-4 border-b">{{ a.position }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.fob | deviseFormatter }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.fret | deviseFormatter }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.ass | deviseFormatter }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.autresFrais | deviseFormatter }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.poids | deviseFormatter }}</td>
+        <td class="py-2 px-4 text-right border-b">{{ a.colis | deviseFormatter }}</td>
+      </tr>
+      </tbody>
+    </table>
   </div>
+
+</div>
